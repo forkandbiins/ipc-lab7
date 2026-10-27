@@ -193,7 +193,6 @@ This clears saved materials, bins, transactions, failed-login counters, and the 
 - **Accounts:** hard-coded for the demo; no real hashing or tokens.
 - **Excel export:** a CSV file; **PDF export:** the browser's print-to-PDF.
 - **Demo data:** the `DEMO` materials and bins are placeholders, not iPc data.
-- **Not validated with iPc (TO VALIDATE):** role-to-page access, which role issues materials (Chapter 1 and Chapter 2 disagree), units for thickness and width, quality-inspection and return-condition values, reason codes, and the password minimum of 8 characters.
 - **Dashboard bins:** "bins holding stock" comes from each batch's last recorded bin and does not change the bin's Available/Occupied status in Master Data.
 
 ---
