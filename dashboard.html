@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard | iPc Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("ipc_theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}</script>
+<link rel="stylesheet" href="css/styles.css"></head><body data-page="dash">
+<a class="skip" href="#main">Skip to main content</a>
+<div id="overlay" hidden></div>
+<div class="shell">
+<aside id="sidebar" class="side" aria-label="Sidebar">
+<div><div class="brand"><span class="logo">IPC</span><div><strong>Integrated Packaging</strong><small>Corporation</small></div></div>
+<nav aria-label="Main navigation"><a href="dashboard.html" data-page="dash" aria-current="page"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a><a href="master-data.html" data-page="master"><i data-lucide="warehouse"></i><span>Master Data &amp; Storage</span></a><a href="inventory-transaction.html" data-page="inv"><i data-lucide="package"></i><span>Inventory Transaction</span></a><a href="reports.html" data-page="rep"><i data-lucide="file-text"></i><span>Reports &amp; Export</span></a></nav></div>
+<div class="sfoot"><span class="sico"><i data-lucide="warehouse"></i></span><div><strong>Bulacan Branch</strong><small>First Bulacan Industrial City</small></div></div>
+</aside>
+<div class="content">
+<header class="top"><button type="button" id="menu" class="icon" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+<span class="sys">Inventory and Stock Management System</span>
+<div class="tr"><button type="button" id="theme" class="icon" aria-label="Toggle dark mode"><i data-lucide="sun" class="sun"></i><i data-lucide="moon" class="moon"></i></button><span class="vsep"></span>
+<span class="av" id="uinit">?</span><div class="who"><b id="uname">Not signed in</b><small id="urole">Guest</small></div>
+<button type="button" id="signout" class="signout"><i data-lucide="log-out"></i><span>Sign out</span></button></div></header>
+<main id="main">
+<div class="phr"><div class="ph"><h1>Dashboard</h1><p>Overview of the materials, batches, bins and transactions recorded in this system.</p></div>
+<div class="acts"><a class="btn" href="inventory-transaction.html" data-page="inv"><i data-lucide="plus"></i>Record transaction</a><a class="btn sec" href="reports.html" data-page="rep"><i data-lucide="file-text"></i>Reports</a><button type="button" class="sec" id="exp">Export stock summary (CSV)</button></div></div>
+
+<div class="kpis" aria-label="Key figures">
+<div class="kpi"><div><p>Materials in catalog</p><h3 id="k-mat">0</h3><small id="k-mat-s"></small></div><span class="kico k-blue"><i data-lucide="layers"></i></span></div>
+<div class="kpi"><div><p>Batches in stock</p><h3 id="k-bat">0</h3><small id="k-bat-s"></small></div><span class="kico k-green"><i data-lucide="boxes"></i></span></div>
+<div class="kpi"><div><p>Low-stock alerts</p><h3 id="k-low">0</h3><small id="k-low-s"></small></div><span class="kico k-amber"><i data-lucide="alert-triangle"></i></span></div>
+<div class="kpi"><div><p>Storage bins</p><h3 id="k-bin">0</h3><small id="k-bin-s"></small></div><span class="kico k-purple"><i data-lucide="map-pin"></i></span></div>
+</div>
+
+<div class="two">
+<section class="card" aria-labelledby="h-mv"><h2 id="h-mv">Transactions per month</h2><p class="lead">Number of receiving and issuance records over the last 6 months. Quantities are not added together because materials use different units.</p>
+<div class="bars" id="bars" role="img" aria-label="Receiving and issuance transactions per month"></div>
+<div class="key"><span><i class="rc"></i>Receiving</span><span><i class="is"></i>Issuance</span></div></section>
+<section class="card" aria-labelledby="h-poly"><h2 id="h-poly">Batches in stock by polymer</h2><p class="lead">Batches with a balance above zero.</p><div id="poly"></div></section>
+</div>
+
+<section class="card" aria-labelledby="h-stock"><h2 id="h-stock">Stock by material</h2><p class="lead">Balance is the sum of the current balances of each received batch. Status compares it with the reorder threshold set in the catalog.</p>
+<div class="filters"><div><label for="q">Filter materials</label><input id="q" placeholder="SKU, name or polymer"><small id="q-help">Type to narrow the list.</small></div>
+<div><label for="st">Status</label><select id="st"><option value="">All statuses</option><option>In stock</option><option>Low stock</option><option>Out of stock</option></select><small id="st-help">Based on reorder threshold.</small></div></div>
+<div class="tw" tabindex="0" role="region" aria-label="Stock by material"><table id="stock"></table></div></section>
+
+<div class="two">
+<section class="card" aria-labelledby="h-act"><h2 id="h-act">Recent activity</h2><p class="lead">Latest recorded transactions.</p><ul class="tl" id="act"></ul></section>
+<section class="card" aria-labelledby="h-bins"><h2 id="h-bins">Storage bins holding stock</h2><p class="lead">From the last recorded bin of each batch with a balance.</p><div id="bins"></div></section>
+</div>
+</main>
+</div></div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="js/common.js"></script>
+<script>
+IPC.seed();
+const $=id=>document.getElementById(id),E=IPC.esc,r2=n=>Math.round(n*100)/100;
+const ICON={receive:'plus-circle',issue:'arrow-up-right',return:'rotate-ccw',adjust:'sliders-horizontal'};
+const VERB={receive:'Received',issue:'Issued',return:'Returned',adjust:'Adjusted'};
+let rows=[];
+function status(b,re){return b<=0?'Out of stock':b<=re?'Low stock':'In stock'}
+const BADGE={'In stock':'b-ok','Low stock':'b-low','Out of stock':'b-out'};
+function draw(){
+ const f=$('q').value.trim().toLowerCase(),s=$('st').value;
+ const show=rows.filter(r=>(!s||r.st===s)&&(!f||[r.sku,r.name,r.polymer].join(' ').toLowerCase().includes(f)));
+ $('stock').innerHTML=`<thead><tr>${['SKU / Material','Form','Polymer','Batches','Balance','Reorder at','Status'].map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>`+
+ (show.length?show.map(r=>`<tr><td><b>${E(r.name)}</b><br><small>${E(r.sku)}</small></td><td>${E(r.form)}</td><td>${E(r.polymer)}</td><td>${r.batches}</td><td><b>${r2(r.bal)}</b> ${E(r.uom)}</td><td>${r.reorder} ${E(r.uom)}</td><td><span class="badge ${BADGE[r.st]}">${r.st}</span></td></tr>`).join(''):'<tr><td colspan="7">No materials match. Register materials under Master Data.</td></tr>')+'</tbody>';
+}
+function load(){
+ const mats=IPC.get('ipc_materials'),locs=IPC.get('ipc_locations'),tx=IPC.get('ipc_txns'),bal=IPC.balances(tx),recs=tx.filter(t=>t.type==='receive');
+ const per={};mats.forEach(m=>per[m.sku]={...m,batches:0,bal:0});
+ recs.forEach(r=>{const o=per[r.sku];if(o){o.batches++;o.bal+=bal[r.batch]||0}});
+ rows=Object.values(per).map(o=>({...o,st:status(o.bal,+o.reorder||0)}));
+ const inStock=recs.filter(r=>(bal[r.batch]||0)>0);
+ const low=rows.filter(r=>r.st==='Low stock').length,out=rows.filter(r=>r.st==='Out of stock').length;
+ const rolls=mats.filter(m=>m.form==='Roll').length,pel=mats.filter(m=>m.form==='Pellet').length;
+ $('k-mat').textContent=mats.length;$('k-mat-s').textContent=`${rolls} plastic roll type(s) · ${pel} pellet type(s)`;
+ $('k-bat').textContent=inStock.length;$('k-bat-s').textContent=`${recs.length} batch(es) received in total`;
+ $('k-low').textContent=low;$('k-low-s').textContent=`${out} material(s) with no stock`;
+ const where={};tx.forEach(t=>{if(t.bin)where[t.batch]=t.bin});
+ const held={};inStock.forEach(r=>{const b=where[r.batch];if(b)(held[b]=held[b]||[]).push(r.batch)});
+ $('k-bin').textContent=locs.length;$('k-bin-s').textContent=`${Object.keys(held).length} holding stock`;
+ // monthly bars
+ const d=new Date(),ms=[];for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push([x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'),x.toLocaleString('en',{month:'short'})])}
+ const cnt=ms.map(([k])=>[tx.filter(t=>t.type==='receive'&&t.date.slice(0,7)===k).length,tx.filter(t=>t.type==='issue'&&t.date.slice(0,7)===k).length]);
+ const mx=Math.max(1,...cnt.flat()),h=n=>n?Math.max(6,n/mx*88):0;
+ $('bars').innerHTML=ms.map(([k,l],i)=>`<div class="bg"><div class="pair"><span class="rc" style="height:${h(cnt[i][0])}%">${cnt[i][0]?`<em>${cnt[i][0]}</em>`:''}</span><span class="is" style="height:${h(cnt[i][1])}%">${cnt[i][1]?`<em>${cnt[i][1]}</em>`:''}</span></div><small>${l}</small></div>`).join('');
+ // polymer rows
+ const pc={};inStock.forEach(r=>{const p=(per[r.sku]||{}).polymer;if(p)pc[p]=(pc[p]||0)+1});
+ const pm=Math.max(1,...Object.values(pc));
+ $('poly').innerHTML=Object.keys(pc).length?Object.entries(pc).map(([p,n])=>`<div class="rowbar"><span>${E(p)}</span><div class="track"><div class="fill" style="width:${n/pm*100}%"></div></div><b>${n}</b></div>`).join(''):'<p class="empty">No stock recorded yet.</p>';
+ // activity
+ $('act').innerHTML=tx.length?[...tx].reverse().slice(0,8).map(t=>`<li><span class="ti"><i data-lucide="${ICON[t.type]}"></i></span><div><p>${VERB[t.type]} ${t.qty} ${E(((per[t.sku]||{}).uom)||'')} of ${E(t.sku)} · ${E(t.batch)}</p><span>${E(t.date)} · ${E(t.ref)} · ${E(t.by)}</span></div></li>`).join(''):'<li class="empty">No transactions yet. Record a receiving transaction to begin.</li>';
+ $('bins').innerHTML=Object.keys(held).length?Object.entries(held).map(([b,l])=>`<p style="margin:0 0 10px"><b>${E(b)}</b><br><small>${l.map(E).join(', ')}</small></p>`).join(''):'<p class="empty">No bin holds stock yet.</p>';
+ draw();if(window.lucide)lucide.createIcons();
+}
+['q','st'].forEach(i=>$(i).addEventListener('input',draw));
+$('exp').addEventListener('click',()=>{
+ const csv=[['SKU','Material','Form','Polymer','Batches','Balance','Unit','Reorder at','Status'],...rows.map(r=>[r.sku,r.name,r.form,r.polymer,r.batches,r2(r.bal),r.uom,r.reorder,r.st])].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.download='ipc-stock-summary-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(a.href);IPC.notice('Stock summary exported as CSV.')});
+load();
+</script></body></html>

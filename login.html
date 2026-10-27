@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login | iPc Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css"></head>
+<body class="auth">
+<a class="skip" href="#login-form">Skip to sign-in form</a>
+<div class="box">
+<div class="hero">
+ <div class="hb">Integrated Packaging Corporation</div>
+ <div class="glass"><div class="gh"><span>What this system tracks</span><span class="chip">Bulacan branch</span></div>
+  <ul><li>Where each plastic roll and pellet batch is stored</li><li>Every receiving, issuance, return and adjustment</li><li>Links from raw material to job order to finished product</li><li>Physical counts against recorded balances</li></ul></div>
+ <div><h2>Find any material. Trace any batch.</h2><p>Inventory and Stock Management System for the Bulacan branch.</p></div>
+</div>
+<div class="formside"><div>
+ <h1>Welcome back</h1><p class="sub">Sign in with your registered corporate email. Fields marked * are required.</p>
+ <div class="demo"><i data-lucide="info"></i><div><p><b>Demo accounts (lab only)</b> · password <code>Demo@1234</code></p>
+ <p>admin@ipc.demo · System Administrator</p><p>manager@ipc.demo · Operations Manager</p><p>inventory@ipc.demo · Inventory Personnel</p><p>production@ipc.demo · Production Personnel</p></div></div>
+ <div id="notice" data-inline role="status" aria-live="polite"></div>
+ <form id="login-form" novalidate>
+ <div class="summary" role="alert"></div>
+ <div class="grid">
+  <div><label for="branch">Branch</label><input id="branch" name="branch" value="Bulacan branch" readonly><small id="branch-help">The system is deployed for the Bulacan branch only.</small></div>
+  <div><label class="req" for="email">Corporate email</label><div class="iw"><i data-lucide="mail"></i><input id="email" name="email" type="email" required maxlength="80" autocomplete="username" placeholder="name@company.com" data-msg-required="Enter your corporate email." data-msg-format="Enter a valid email, e.g. name@company.com."></div><small id="email-help">Use the email registered by the System Administrator.</small></div>
+  <div><label class="req" for="password">Password</label><div class="iw"><i data-lucide="lock"></i><input id="password" name="password" type="password" required minlength="8" maxlength="64" autocomplete="current-password" placeholder="At least 8 characters" data-msg-required="Enter your password."></div><small id="password-help">8–64 characters.</small></div>
+  <div><label class="opt"><input id="show" type="checkbox">Show password</label><label class="opt"><input id="remember" name="remember" type="checkbox" value="1">Remember my email on this computer</label></div>
+ </div>
+ <input type="hidden" name="formid" value="login">
+ <div class="actions"><button type="submit">Sign in to dashboard</button><button type="reset" class="sec">Clear form</button><button type="button" class="sec" id="forgot">Forgot password?</button></div>
+ </form>
+ <p style="font-size:12px;color:#64748b;margin-top:20px">After more than 3 consecutive failed attempts the account locks for 5 minutes. A real deployment verifies a bcrypt hash on the server and issues a JWT; this page only simulates it.</p>
+</div></div>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="js/common.js"></script>
+<script>
+const $=id=>document.getElementById(id),f=$('login-form');
+const ACC={'admin@ipc.demo':['Demo Administrator','System Administrator'],'manager@ipc.demo':['Demo Manager','Operations Manager'],'inventory@ipc.demo':['Demo Inventory Clerk','Inventory Personnel'],'production@ipc.demo':['Demo Production Operator','Production Personnel']};
+const read=()=>{try{return JSON.parse(localStorage.getItem('ipc_login'))||{}}catch(e){return{}}},write=o=>{try{localStorage.setItem('ipc_login',JSON.stringify(o))}catch(e){}};
+try{$('email').value=localStorage.getItem('ipc_remember')||'';$('remember').checked=!!$('email').value}catch(e){}
+$('show').addEventListener('change',e=>{$('password').type=e.target.checked?'text':'password'});
+$('forgot').addEventListener('click',()=>IPC.notice('Password recovery (email OTP) is a separate sub-module and is not part of this form. Ask the System Administrator for a reset.',true));
+initForm(f,{ok(d){
+ const email=d.get('email').trim().toLowerCase(),st=read(),rec=st[email]||{n:0,until:0};
+ if(rec.until>Date.now())return IPC.notice(`Account locked. Try again in ${Math.ceil((rec.until-Date.now())/60000)} minute(s).`,false);
+ const a=ACC[email];
+ if(a&&d.get('password')==='Demo@1234'){
+  delete st[email];write(st);
+  try{sessionStorage.setItem('ipc_user',JSON.stringify({email,name:a[0],role:a[1]}));sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('userEmail',email);d.get('remember')?localStorage.setItem('ipc_remember',email):localStorage.removeItem('ipc_remember')}catch(e){}
+  IPC.notice('Signed in. Redirecting…');location.replace(IPC.LANDING[a[1]]);
+ }else{
+  rec.n++;if(rec.n>3){rec.until=Date.now()+300000;rec.n=0;IPC.notice('Too many failed attempts. The account is locked for 5 minutes.',false)}
+  else IPC.notice(`Invalid email or password. Failed attempts: ${rec.n}.`,false);
+  st[email]=rec;write(st);
+ }}});
+</script></body></html>
