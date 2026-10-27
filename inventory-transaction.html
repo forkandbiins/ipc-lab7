@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inventory Transaction | iPc Inventory</title><link rel="stylesheet" href="css/styles.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><script>try{if(localStorage.getItem("ipc_theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}</script></head><body data-page="inv">
+<a class="skip" href="#main">Skip to main content</a>
+<div id="overlay" hidden></div>
+<div class="shell">
+<aside id="sidebar" class="side" aria-label="Sidebar">
+<div><div class="brand"><span class="logo">IPC</span><div><strong>Integrated Packaging</strong><small>Corporation</small></div></div>
+<nav aria-label="Main navigation"><a href="dashboard.html" data-page="dash"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a><a href="master-data.html" data-page="master"><i data-lucide="warehouse"></i><span>Master Data &amp; Storage</span></a><a href="inventory-transaction.html" data-page="inv" aria-current="page"><i data-lucide="package"></i><span>Inventory Transaction</span></a><a href="reports.html" data-page="rep"><i data-lucide="file-text"></i><span>Reports &amp; Export</span></a></nav></div>
+<div class="sfoot"><span class="sico"><i data-lucide="warehouse"></i></span><div><strong>Bulacan Branch</strong><small>First Bulacan Industrial City</small></div></div>
+</aside>
+<div class="content">
+<header class="top"><button type="button" id="menu" class="icon" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+<span class="sys">Inventory and Stock Management System</span>
+<div class="tr"><button type="button" id="theme" class="icon" aria-label="Toggle dark mode"><i data-lucide="sun" class="sun"></i><i data-lucide="moon" class="moon"></i></button><span class="vsep"></span>
+<span class="av" id="uinit">?</span><div class="who"><b id="uname">Not signed in</b><small id="urole">Guest</small></div>
+<button type="button" id="signout" class="signout"><i data-lucide="log-out"></i><span>Sign out</span></button></div></header>
+<main id="main">
+<div class="ph"><h1>Inventory Transaction</h1><p>Record receiving, issuance to production, returns and adjustments, and review batch history.</p></div>
+<div id="notice" role="status" aria-live="polite"></div>
+<section class="card" aria-labelledby="h-tx">
+<h2 id="h-tx">Record inventory transaction</h2>
+<p class="lead">Major form 2 · Inventory Transaction module. Fields marked * are required. Choose a transaction type to show its fields.</p>
+<form id="tx-form" novalidate>
+<div class="summary" role="alert"></div>
+<fieldset><legend class="req">Transaction type</legend>
+<label class="opt"><input type="radio" name="txtype" value="receive" required>Receive</label>
+<label class="opt"><input type="radio" name="txtype" value="issue" required>Issue to production</label>
+<label class="opt"><input type="radio" name="txtype" value="return" required>Return</label>
+<label class="opt"><input type="radio" name="txtype" value="adjust" required>Adjust</label>
+<span class="err" id="txtype-err" role="alert"></span></fieldset>
+<div class="grid" style="margin-top:14px">
+<div><label class="req" for="ref">Reference number</label><input id="ref" name="ref" required pattern="[A-Za-z0-9\-]{3,30}" maxlength="30" autocomplete="off" placeholder="e.g., RCV-0001" data-msg-format="Use 3–30 letters, digits or hyphens."><small id="ref-help">Must be unique. Duplicates are rejected.</small></div>
+<div><label class="req" for="date">Transaction date</label><input id="date" name="date" type="date" required data-msg-range="Date cannot be in the future."><small id="date-help">Today or earlier.</small></div>
+<div data-for="receive"><label class="req" for="sku">Material</label><select id="sku" name="sku" required data-msg-required="Select a material."></select><small id="sku-help">From the material catalog.</small></div>
+<div data-for="receive"><label class="req" for="lot">Supplier batch / lot number</label><input id="lot" name="lot" required maxlength="40" autocomplete="off" placeholder="Supplier lot"><small id="lot-help">As printed on the supplier label.</small></div>
+<div data-for="receive"><label class="req" for="po">Purchase reference number</label><input id="po" name="po" required pattern="[A-Za-z0-9\-]{3,30}" maxlength="30" autocomplete="off" placeholder="e.g., PO-0001" data-msg-format="Use 3–30 letters, digits or hyphens."><small id="po-help">Reference only; purchasing is outside scope.</small></div>
+<div data-for="receive"><label class="req" for="inspect">Quality inspection status</label><select id="inspect" name="inspect" required data-msg-required="Select an inspection status."><option value="">Select…</option><option>Passed</option><option>Pending</option><option>Rejected</option></select><small id="inspect-help">Status values to be confirmed with iPc.</small></div>
+<div data-for="receive return"><label class="req" for="bin">Storage bin</label><select id="bin" name="bin" required data-msg-required="Select a storage bin."></select><small id="bin-help">Defined under Master Data.</small></div>
+<div data-for="issue return adjust"><label class="req" for="batch">Raw-material batch</label><select id="batch" name="batch" required data-msg-required="Select a batch."></select><small id="batch-help">Batches created by receiving, with current balance.</small></div>
+<div data-for="issue return"><label class="req" for="job">Job order number</label><input id="job" name="job" required pattern="[A-Za-z0-9\-]{3,30}" maxlength="30" autocomplete="off" placeholder="e.g., JO-0001" data-msg-format="Use 3–30 letters, digits or hyphens."><small id="job-help">Production job order the material goes to or comes from.</small></div>
+<div data-for="return"><label class="req" for="cond">Condition</label><select id="cond" name="cond" required data-msg-required="Select a condition."><option value="">Select…</option><option>Good</option><option>Damaged</option><option>Needs inspection</option></select><small id="cond-help">Condition values to be confirmed with iPc.</small></div>
+<div data-for="adjust"><label class="req" for="adjtype">Adjustment type</label><select id="adjtype" name="adjtype" required data-msg-required="Select an adjustment type."><option value="">Select…</option><option value="increase">Increase</option><option value="decrease">Decrease</option></select><small id="adjtype-help">Quantity below is always entered as a positive number.</small></div>
+<div data-for="adjust"><label class="req" for="reason">Reason code</label><select id="reason" name="reason" required data-msg-required="Select a reason."><option value="">Select…</option><option>Physical damage</option><option>Material degradation</option><option>Sampling</option><option>Other (explain in remarks)</option></select><small id="reason-help">Causes named in Chapter 1; full list to be confirmed.</small></div>
+<div><label class="req" for="qty">Quantity</label><input id="qty" name="qty" type="number" required min="0.01" step="any" placeholder="e.g., 25" data-msg-range="Quantity must be greater than zero."><small id="qty-help">Must be greater than zero.</small></div>
+<div><label class="req" for="by">Responsible personnel</label><input id="by" name="by" required minlength="3" maxlength="60" autocomplete="name" placeholder="Full name"><small id="by-help">Person recording this transaction.</small></div>
+<div class="full"><label for="remarks">Remarks</label><textarea id="remarks" name="remarks" rows="2" maxlength="200" placeholder="Optional"></textarea><small id="remarks-help">Up to 200 characters.</small></div>
+</div>
+<input type="hidden" name="formid" value="inventory-transaction">
+<div class="actions"><button type="submit">Save transaction</button><button type="reset" class="sec">Clear form</button></div>
+</form></section>
+
+<section class="card" aria-labelledby="h-bal"><h2 id="h-bal">Current batch balances</h2>
+<p class="lead">Computed from the recorded transactions of each batch.</p>
+<div class="tw" tabindex="0" role="region" aria-label="Batch balances"><table id="bal"></table></div></section>
+
+<section class="card" aria-labelledby="h-hist"><h2 id="h-hist">Transaction history</h2>
+<p class="lead">Transactions are never deleted; this demo has no delete function.</p>
+<div style="max-width:380px"><label for="hist">Show history for</label><select id="hist"></select></div>
+<div class="tw" tabindex="0" role="region" aria-label="Transaction history"><table id="histtbl"></table></div></section>
+</main>
+</div></div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="js/common.js"></script>
+<script>
+IPC.seed();
+const $=id=>document.getElementById(id),f=$('tx-form'),E=IPC.esc,r2=n=>Math.round(n*100)/100;
+const TX='ipc_txns',tx=()=>IPC.get(TX),typ=()=>(f.querySelector('[name=txtype]:checked')||{}).value;
+const uomOf=sku=>(IPC.get('ipc_materials').find(m=>m.sku===sku)||{}).uom||'';
+$('date').max=new Date().toISOString().slice(0,10);
+if(IPC.user())$('by').value=IPC.user().name;
+function sync(){const t=typ();f.querySelectorAll('[data-for]').forEach(w=>{const on=!!t&&w.dataset.for.split(' ').includes(t);w.hidden=!on;w.querySelectorAll('input,select,textarea').forEach(c=>c.disabled=!on)})}
+function unit(){const s=!$('sku').disabled?$('sku').value:(tx().find(x=>x.batch===$('batch').value)||{}).sku,u=uomOf(s);$('qty-help').textContent='Must be greater than zero.'+(u?` Unit: ${u}.`:'')}
+function histView(){const h=$('hist').value;
+ const rows=tx().filter(t=>!h||t.batch===h).reverse().map(t=>[t.date,t.type,t.ref,t.batch,t.sku,t.qty,
+  t.type==='receive'?`Lot ${t.lot}, PO ${t.po}, ${t.inspect}, to ${t.bin}`:t.type==='issue'?`Job ${t.job}`:t.type==='return'?`Job ${t.job}, ${t.cond}, to ${t.bin}`:`${t.adjtype}: ${t.reason}`,t.by]);
+ $('histtbl').innerHTML=IPC.table(['Date','Type','Reference','Batch','SKU','Qty','Details','By'],rows)}
+function fill(){
+ const mats=IPC.get('ipc_materials'),locs=IPC.get('ipc_locations'),all=tx(),bal=IPC.balances(all),recs=all.filter(t=>t.type==='receive'),keep=$('hist').value;
+ const o=(v,t)=>`<option value="${E(v)}">${E(t)}</option>`;
+ $('sku').innerHTML=o('','Select material…')+mats.map(m=>o(m.sku,`${m.sku} – ${m.name}`)).join('');
+ $('bin').innerHTML=o('','Select bin…')+locs.map(l=>o(l.code,l.code)).join('');
+ $('batch').innerHTML=o('','Select batch…')+recs.map(r=>o(r.batch,`${r.batch} – ${r.sku} (balance ${r2(bal[r.batch])} ${uomOf(r.sku)})`)).join('');
+ $('hist').innerHTML=o('','All batches')+recs.map(r=>o(r.batch,r.batch)).join('');$('hist').value=keep;
+ $('bal').innerHTML=IPC.table(['Batch','SKU','Balance','Unit'],recs.map(r=>[r.batch,r.sku,r2(bal[r.batch]),uomOf(r.sku)]),'No batches yet. Record a receiving transaction first.');
+ histView();unit()}
+f.querySelectorAll('[name=txtype]').forEach(r=>r.addEventListener('change',()=>{sync();unit()}));
+['sku','batch'].forEach(i=>$(i).addEventListener('change',unit));$('hist').addEventListener('change',histView);
+initForm(f,{
+ pre(){
+  const q=+$('qty').value,bal=IPC.balances(tx()),b=$('batch').value;
+  $('ref').setCustomValidity(tx().some(x=>x.ref.toLowerCase()===$('ref').value.trim().toLowerCase())?'This reference number is already recorded.':'');
+  const dec=typ()==='issue'||(typ()==='adjust'&&$('adjtype').value==='decrease');
+  $('qty').setCustomValidity(dec&&b&&q>(bal[b]||0)?`Quantity exceeds the available balance (${r2(bal[b]||0)}).`:'')},
+ ok(d){
+  const o=Object.fromEntries(d),all=tx(),t=o.txtype;let batch=o.batch;
+  if(t==='receive'){const n=all.filter(x=>x.type==='receive'&&x.date===o.date).length+1;batch=`B-${o.date.replace(/-/g,'')}-${String(n).padStart(3,'0')}`}
+  const sku=t==='receive'?o.sku:(all.find(x=>x.batch===batch)||{}).sku;
+  all.push({type:t,ref:o.ref.trim(),date:o.date,batch,sku,qty:+o.qty,lot:o.lot,po:o.po,inspect:o.inspect,bin:o.bin,job:o.job,cond:o.cond,adjtype:o.adjtype,reason:o.reason,by:o.by.trim(),remarks:o.remarks,ts:new Date().toISOString()});
+  IPC.set(TX,all);f.reset();fill();IPC.notice(`${t[0].toUpperCase()+t.slice(1)} recorded. Batch: ${batch}.`)}});
+f.addEventListener('ipc:reset',()=>{sync();if(IPC.user())$('by').value=IPC.user().name;unit()});
+sync();fill();
+</script></body></html>
